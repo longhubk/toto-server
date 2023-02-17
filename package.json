@@ -1,0 +1,36 @@
+{
+   "name": "todo-server",
+   "version": "1.0.0",
+   "description": "Simple Server For Todo App",
+   "main": "index.js",
+   "scripts": {
+      "build": "tsc",
+      "start": "ts-node src/index.ts",
+      "start:dev": "ts-node-dev --watch \"src/**/*\" --respawn --transpile-only src/main.ts ",
+      "start:prod": "node dist/main.js",
+      "test": "echo \"Error: no test specified\" && exit 1",
+      "typeorm": "typeorm-ts-node-commonjs"
+   },
+   "author": "",
+   "license": "ISC",
+   "dependencies": {
+      "@types/node": "^18.13.0",
+      "colyseus": "^0.14.24",
+      "config": "^3.3.9",
+      "dotenv": "^16.0.3",
+      "envalid": "^7.3.1",
+      "typeorm": "0.3.12",
+      "reflect-metadata": "^0.1.13",
+      "pg": "^8.4.0",
+      "express": "^4.17.2",
+      "body-parser": "^1.19.1"
+   },
+   "devDependencies": {
+      "@types/config": "^3.3.0",
+      "@types/express": "^4.17.17",
+      "@types/node": "^16.11.10",
+      "ts-node": "10.7.0",
+      "ts-node-dev": "^2.0.0",
+      "typescript": "4.5.2"
+   }
+}
