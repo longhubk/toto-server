@@ -1,23 +1,34 @@
-import { UserController } from "./controller/UserController"
+import { TodoController } from "./controller/todo.controller"
 
-export const Routes = [{
+export const Routes = [
+  {
     method: "get",
-    route: "/users",
-    controller: UserController,
+    route: "/todos",
+    controller: TodoController,
     action: "all"
-}, {
+  },
+  {
     method: "get",
-    route: "/users/:id",
-    controller: UserController,
+    route: "/todos/:id",
+    controller: TodoController,
     action: "one"
-}, {
+  },
+  {
     method: "post",
-    route: "/users",
-    controller: UserController,
+    route: "/todos",
+    controller: TodoController,
     action: "save"
-}, {
+  },
+  {
+    method: "put",
+    route: "/todos/:id",
+    controller: TodoController,
+    action: "update"
+  },
+  {
     method: "delete",
-    route: "/users/:id",
-    controller: UserController,
+    route: "/todos/:id",
+    controller: TodoController,
     action: "remove"
-}]
+  }
+]

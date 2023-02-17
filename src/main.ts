@@ -1,65 +1,53 @@
-import { Server } from "colyseus"
-const port = parseInt(process.env.PORT, 10) || 3000
-
-import * as express from "express"
 import * as bodyParser from "body-parser"
+const port = parseInt(process.env.PORT, 10) || 3000
+import { Server } from "colyseus"
+import * as express from "express"
 import { Request, Response } from "express"
+import { createServer } from "http"
 import { AppDataSource } from "./data-source"
+import { Todo } from "./entities/todo.entity"
 import { Routes } from "./routes"
-import { User } from "./entity/User"
-import { createServer } from "http";
 
-
+// create express app
 const app = express.default()
 
 AppDataSource.initialize().then(async () => {
 
-    // create express app
-    // const app = express();
-    app.use(bodyParser.json())
+  app.use(bodyParser.json())
 
-    // register express routes from defined application routes
-    Routes.forEach(route => {
-        (app as any)[route.method](route.route, (req: Request, res: Response, next: Function) => {
-            const result = (new (route.controller as any))[route.action](req, res, next)
-            if (result instanceof Promise) {
-                result.then(result => result !== null && result !== undefined ? res.send(result) : undefined)
+  // register express routes from defined application routes
+  Routes.forEach(route => {
+    (app as any)[route.method](route.route, (req: Request, res: Response, next: Function) => {
+      const result = (new (route.controller as any))[route.action](req, res, next)
+      if (result instanceof Promise) {
+        result.then(result => result !== null && result !== undefined ? res.send(result) : undefined)
 
-            } else if (result !== null && result !== undefined) {
-                res.json(result)
-            }
-        })
+      } else if (result !== null && result !== undefined) {
+        res.json(result)
+      }
     })
+  })
 
-    // setup express app here
-    // ...
+  // insert new todos for test
+  await AppDataSource.manager.save(
+    AppDataSource.manager.create(Todo, {
+      title: "task1",
+      description: "Eat",
+      completed: true
+    })
+  )
 
-    // start express server
-    app.listen(3000)
+  await AppDataSource.manager.save(
+    AppDataSource.manager.create(Todo, {
+      title: "task2",
+      description: "Sleep",
+      completed: false
+    })
+  )
 
-    // insert new users for test
-    await AppDataSource.manager.save(
-        AppDataSource.manager.create(User, {
-            firstName: "Timber",
-            lastName: "Saw",
-            age: 27
-        })
-    )
-
-    await AppDataSource.manager.save(
-        AppDataSource.manager.create(User, {
-            firstName: "Phantom",
-            lastName: "Assassin",
-            age: 24
-        })
-    )
-
-    console.log("Express server has started on port 3000. Open http://localhost:3000/users to see results")
+  console.log(`Express server has started on port 3000. Open http://localhost:${port}/todos to see results`)
 
 }).catch(error => console.log(error))
-
-
-// const gameServer = new Server()
 
 app.use(express.json());
 
