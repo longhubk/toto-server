@@ -3,26 +3,26 @@
 # GET http://localhost:3000/todos
 
 # one
-GET http://localhost:3000/todos/30
+# GET http://localhost:3000/todos/30
 
 # save
 # POST http://localhost:3000/todos
 # Content-Type: application/json
 
 # {
-#   "title": "task3",
+#   "title": "task_test999",
 #   "description": "learn english",
 #   "completed": false
 # }
 
 # update
-PUT http://localhost:3000/todos/30
+PUT http://localhost:3000/todos/222
 Content-Type: application/json
 
 {
-  "title": "task5",
-  "description": "learn english",
+  "title": "task7",
+  "description": "learn math",
   "completed": false
 }
 
-# DELETE  http://localhost:3000/todos/27
+# DELETE  http://localhost:3000/todos/218

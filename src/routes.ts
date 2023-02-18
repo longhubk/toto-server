@@ -1,4 +1,4 @@
-import { TodoController } from "./controller/todo.controller"
+import { TodoController } from "./controllers/todo.controller"
 
 export const Routes = [
   {

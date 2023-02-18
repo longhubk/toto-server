@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta name="viewport" content="width=device-width" />
+  <script type="text/javascript" src="https://unpkg.com/colyseus.js@^0.14.0/dist/colyseus.js"></script>
+  <script type="text/javascript" src="https://unpkg.com/axios@1.2.1/dist/axios.min.js"></script>
+  <style type="text/css">
+    body {
+      font-family: Tahoma, Geneva, sans-serif;
+    }
+
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+      background-color: rgb(0, 0, 0);
+      background-color: rgba(0, 0, 0, 0.4);
+      padding-top: 60px;
+    }
+
+    .modal-content {
+      background-color: #fefefe;
+      margin: 5% auto 15% auto;
+      padding: 5%;
+      border: 1px solid #888;
+      width: 80%;
+    }
+
+    .todo-box {
+      border-width: 1px;
+      border: #888;
+      border-style: solid;
+      padding: 5%;
+      margin-top: 5px;
+    }
+  </style>
+
+</head>
+
+<body>
+  <h1>Todo list</h1>
+
+  <button onclick="openCreate()">new</button>
+
+  <div id="list-todo"></div>
+
+  <div id="id01" class="modal">
+    <div class="modal-content">
+      <label for="title"><b>Title</b></label><br />
+      <input id="title-input" type="text" placeholder="Enter title" name="title">
+      <br /><br />
+      <label for="des"><b>Description</b></label>
+      <br />
+      <input id="description-input" type="description" placeholder="Enter description" name="des">
+      <br /><br />
+      <label for="des"><b>Completed</b></label>
+      <select id="completed-input">
+        <option value="true">true</option>
+        <option value="false" selected="selected">false</option>
+      </select>
+      <br /><br />
+      <button id="btn-save" onclick="createNewTodo()">save</button>
+    </div>
+  </div>
+
+  <script>
+    const host = window.document.location.host.replace(/:.*/, '');
+    const port = location.port;
+
+    const websocketURL = location.protocol.replace("http", "ws") + "//" + host + (port ? ':' + port : '');
+    const client = new Colyseus.Client(websocketURL)
+    const httpURL = `http://${host}:${port}`;
+    console.log({ host, port: location.port, websocketURL, httpURL });
+
+    let todos = [];
+    let roomInstance;
+    const listTodo = document.getElementById("list-todo");
+
+    const getListTodo = async () => {
+      const getListTodoRes = await axios.get(httpURL + '/todos');
+      console.log({ getListTodoRes: getListTodoRes.data })
+      return getListTodoRes.data;
+    }
+
+    const titleInput = document.getElementById('title-input');
+    const descriptionInput = document.getElementById('description-input');
+    const completedInput = document.getElementById('completed-input');
+    const btnSave = document.getElementById('btn-save');
+    const modal = document.getElementById('id01');
+
+    const updateTodo = async (id) => {
+      const updateTodoBody = {
+        title: titleInput.value,
+        description: descriptionInput.value,
+        completed: completedInput.value === "true" ? true : false,
+      }
+      console.log({ updateTodoBody })
+      const updateTodoRes = await axios.put(httpURL + `/todos/${id}`, updateTodoBody);
+      console.log({ updateTodoRes: updateTodoRes.data })
+      modal.style.display = "none";
+    }
+
+    const openUpdate = async (id, title, description, completed) => {
+      titleInput.value = title;
+      descriptionInput.value = description;
+      completedInput.value = completed;
+      btnSave.onclick = async () => updateTodo(id)
+      document.getElementById('id01').style.display = 'block';
+    }
+
+    const createNewTodo = async () => {
+      const createNewTodoBody = {
+        title: titleInput.value,
+        description: descriptionInput.value,
+        completed: completedInput.value === "true" ? true : false,
+      }
+      console.log({ createNewTodoBody })
+      const createNewTodoRes = await axios.post(httpURL + '/todos', createNewTodoBody);
+      console.log({ createNewTodoRes: createNewTodoRes.data })
+      modal.style.display = "none";
+    }
+
+    const openCreate = async () => {
+      titleInput.value = "";
+      descriptionInput.value = "";
+      completedInput.value = "false";
+      document.getElementById('id01').style.display = 'block';
+      btnSave.onclick = async () => createNewTodo()
+    }
+
+    const deleteTodo = async (deleteTodoID) => {
+      const deleteTodoRes = await axios.delete(httpURL + `/todos/${deleteTodoID}`);
+      console.log({ deleteTodoRes: deleteTodoRes.data })
+    }
+
+    const getTodoModel = (rawChangedTodo) => {
+      return {
+        id: rawChangedTodo.id,
+        title: rawChangedTodo.title,
+        description: rawChangedTodo.description,
+        completed: rawChangedTodo.completed,
+      }
+    }
+
+    const renderTodoList = () => {
+      let listTodoHTML = ``;
+      for (const todo of todos) {
+        listTodoHTML += `
+<div class="todo-box">
+<pre>
+id          : ${todo.id}
+title       : ${todo.title}
+description : ${todo.description}
+completed   : ${todo.completed}
+</pre>
+<button onclick="openUpdate(${todo.id}, '${todo.title}', '${todo.description}', ${todo.completed})">edit</button>
+
+<button onclick="deleteTodo(${todo.id})">delete</button>
+</div>`
+      }
+      listTodo.innerHTML = listTodoHTML;
+    }
+
+
+    (async () => {
+      const availableRooms = await client.getAvailableRooms("todo_sync_room");
+      console.log({ getAvailableRooms: availableRooms });
+      for await (const availableRoom of availableRooms) {
+        roomInstance = await client.joinById(availableRoom.roomId)
+        console.log('joined to', availableRoom.roomId)
+
+        // listen to patches coming from the server
+        roomInstance.state.todos.onAdd = function (todo, sessionId) {
+          const changedTodo = getTodoModel(todo);
+          console.log({ changedTodo })
+          const existedTodoIdx = todos.findIndex(todo => todo.id === changedTodo.id);
+          console.log({ existedTodoIdx })
+          if (existedTodoIdx !== -1) {
+            console.log('change', todos.length)
+            todos[existedTodoIdx] = changedTodo;
+          } else {
+            todos.push(changedTodo);
+            console.log('push new', todos.length)
+          }
+          renderTodoList();
+        };
+
+        roomInstance.state.todos.onRemove = function (todo, sessionId) {
+          const changedTodo = getTodoModel(todo);
+          console.log({ onRemove: todo, sessionId })
+          const existedTodoIdx = todos.findIndex(todo => todo.id === changedTodo.id);
+          console.log({ existedTodoIdx })
+          if (existedTodoIdx !== -1) {
+            todos.splice(existedTodoIdx, 1);
+            console.log('removed', todos.length)
+          } else {
+            console.log('not removed', todos.length)
+          }
+          renderTodoList();
+        }
+      }
+      const listTodo = await getListTodo();
+      todos = listTodo;
+      renderTodoList();
+    })()
+
+
+    // When the user clicks anywhere outside of the modal, close it
+    window.onclick = function (event) {
+      if (event.target == modal) {
+        modal.style.display = "none";
+      }
+    }
+
+
+  </script>
+</body>
+
+</html>
