@@ -28,11 +28,19 @@
 
 
 ### Step 3: Run this project:
-3.1. Run `npm i` command
+3.1. Run `npm install` command
 
 3.2. Run `npm run start:dev` command
 
 ![image-3-2](./docs/step-3-2.png)
 
+
+### Step 4: Open client test:
+4.1. Open browser and go to `http://localhost:3000/client.html` (3000 is example, maybe you config at diffrent port)
+4.2. You can open 2 tab and test create, edit, delete todo and see the change.
+
+![image-4-2](./docs/step-4-2.png)
+
+
 ### video demo
-![video demo](https://youtu.be/nnl4bRqGSpg)
+[video demo on youtube here](https://youtu.be/nnl4bRqGSpg)
