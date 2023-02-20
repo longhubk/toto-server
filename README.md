@@ -37,6 +37,7 @@
 
 ### Step 4: Open client test:
 4.1. Open browser and go to `http://localhost:3000/client.html` (3000 is example, maybe you config at diffrent port)
+
 4.2. You can open 2 tab and test create, edit, delete todo and see the change.
 
 ![image-4-2](./docs/step-4-2.png)
